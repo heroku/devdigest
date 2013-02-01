@@ -5,7 +5,12 @@ Bundler.require
 
 require './devdigest'
 
-task :run do
+task :digest do
+  since = Time.now-24*60*60
+  puts Devdigest.run(since)
+end
+
+task :daily_email do
   case Time.now.wday
   when 0, 6
     puts "Skipping weekend"
