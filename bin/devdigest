@@ -1,13 +1,55 @@
-require 'rubygems'
-require 'bundler'
+#!/usr/bin/env ruby
+
+require 'devdigest'
+require 'devdigest/credentials'
+require 'devdigest/prompt'
+require 'github_api'
 require 'time'
 
-Bundler.require
+def valid_token?
+  # TODO: Is there a better means for testing if a given token is valid?
+  not token.nil? and github.repos.list
+rescue Github::Error::Unauthorized
+end
+
+def token
+  Devdigest::Credentials.token
+end
+
+def token_for_account(username, password, note = 'devdigest')
+  existing_oauth_app(username, password) or
+    create_oauth_app(username, password)
+rescue Github::Error::Unauthorized
+end
+
+def existing_oauth_app(username, password, app_name = 'devdigest (API)')
+  existing = Github.new(login: username, password: password)
+               .oauth.all.find {|auth| auth.app.name == app_name }
+  existing and existing.token
+end
+
+def create_oauth_app(username, password, app_name = 'devdigest')
+  Github.new(login: username, password: password)
+    .oauth.create(scopes: ['repo'], note: note)
+    .token
+end
+
+def authenticate
+  while not valid_token?
+    email, password = Devdigest::Prompt.new.ask_for_credentials
+    token = token_for_account email, password
+    Devdigest::Credentials.save email, token
+  end
+end
+
+def github
+  Github.new oauth_token: token
+end
+
+
+authenticate
 
 since = Time.now-24*60*60
-
-github = Github.new oauth_token: ENV["GITHUB_TOKEN"]
-
 org   = ENV["GITHUB_ORG"]
 repos = ENV["GITHUB_REPOS"].split(",").sort
 users = ENV["GITHUB_USERS"].split(",").sort
