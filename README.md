@@ -18,7 +18,17 @@ You'll need a [Github OAuth token](https://help.github.com/articles/creating-an-
 
     cp .env .env.sample
     vi .env.sample # fill in with the token and your team details
-    foreman run ruby devdigest.rb
+    foreman run rake digest
+
+
+## Deployment
+
+Sorry, this is not yet a service! For now:
+
+  - Push to a Heroku app
+  - Add config vars
+  - Install the addons `mailgun` and `scheduler`
+  - Configure scheduler to run daily, running `bundle exec rake daily_email`
 
 
 ## Sample
