@@ -6,7 +6,18 @@ Bundler.require
 require './devdigest'
 
 task :run do
-  since    = Time.now-24*60*60
+  case Time.now.wday
+  when 0, 6
+    puts "Skipping weekend"
+    next
+  when 1 # monday
+    since = Time.now-3*24*60*60
+    puts "Monday - fetching activity since #{since}"
+  else   # regular weekday
+    since = Time.now-24*60*60
+    puts "Weekday - fetching activity since #{since}"
+  end
+
   digest   = Devdigest.run(since)
   markdown = RDiscount.new(digest)
   subject  = "Team digest - #{Time.now.strftime("%A")}"
