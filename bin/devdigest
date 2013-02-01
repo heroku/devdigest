@@ -13,7 +13,7 @@ rescue Github::Error::Unauthorized
 end
 
 def token
-  Credentials.token
+  Devdigest::Credentials.token
 end
 
 def token_for_account(username, password, note = 'devdigest')
@@ -38,7 +38,7 @@ def authenticate
   while not valid_token?
     email, password = Prompt.new.ask_for_credentials
     token = token_for_account email, password
-    Credentials.save email, token
+    Devdigest::Credentials.save email, token
   end
 end
 
