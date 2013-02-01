@@ -37,7 +37,7 @@ important_events = {
   "IssuesEvent" => lambda { |event|
     action = event.payload.action # opened/closed/reopened
     title  = event.payload.issue.title
-    url    = event.payload.issue.title
+    url    = event.payload.issue.url
     "[#{action} issue #{title}](#{url})"
   },
   "PushEvent" => lambda { |event|
