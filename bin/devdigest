@@ -1,12 +1,10 @@
-require 'rubygems'
-require 'bundler'
+#!/usr/bin/env ruby
+
+require 'devdigest'
+require 'devdigest/credentials'
+require 'devdigest/prompt'
+require 'github_api'
 require 'time'
-
-Bundler.require
-
-require './credentials'
-require './prompt'
-
 
 def valid_token?
   # TODO: Is there a better means for testing if a given token is valid?
