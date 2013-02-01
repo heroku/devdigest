@@ -36,7 +36,7 @@ end
 
 def authenticate
   while not valid_token?
-    email, password = Prompt.new.ask_for_credentials
+    email, password = Devdigest::Prompt.new.ask_for_credentials
     token = token_for_account email, password
     Devdigest::Credentials.save email, token
   end
