@@ -28,15 +28,6 @@ repos.each do |repo|
 end
 
 important_events = {
-  "PushEvent" => lambda { |event|
-    commits  = event.payload.commits
-    messages = commits.map { |commit| commit.message.split("\n").first }
-    if messages.size == 1
-      "pushed #{messages.first}"
-    else
-      "pushed #{messages.size} commits: #{messages.last}"
-    end
-  },
   "PullRequestEvent" => lambda { |event|
     action = event.payload.action # opened/closed/reopened/synchronize
     title  = event.payload.pull_request.title
@@ -49,6 +40,15 @@ important_events = {
     url    = event.payload.issue.title
     "[#{action} issue #{title}](#{url})"
   },
+  "PushEvent" => lambda { |event|
+    commits  = event.payload.commits
+    messages = commits.map { |commit| commit.message.split("\n").first }
+    if messages.size == 1
+      "pushed #{messages.first}"
+    else
+      "pushed #{messages.size} commits: #{messages.last}"
+    end
+  },
   "IssueCommentEvent" => lambda { |event|
     title  = event.payload.issue.title
     url    = event.payload.issue.title
@@ -56,7 +56,8 @@ important_events = {
   },
 }
 
-order = ["PullRequestEvent", "IssuesEvent", "PushEvent", "IssueCommentEvent"]
+# the events above are in order of priority
+order = important_events.keys
 
 activity.keys.each do |user|
   info = github.users.get user: user
