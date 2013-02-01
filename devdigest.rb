@@ -75,7 +75,7 @@ activity.keys.each do |user|
   if events.empty?
     puts "  - no tracked activity"
   else
-    events.each do |repo, event|
+    events[0, 6].each do |repo, event|
       summary = important_events[event.type].call(event)
       puts "  - **#{repo}** #{summary}"
     end
