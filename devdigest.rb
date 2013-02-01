@@ -65,9 +65,8 @@ activity.keys.each do |user|
   end
 
   # voodoo magic I don't want to bother making readable without classes
-  events.sort! do |(_, a), (_, b)|
-    "#{order.index(a.type) || 999} #{a.created_at}" <=>
-      "#{order.index(b.type) || 999} #{b.created_at}"
+  events.sort_by! do |repo, event|
+    "#{order.index(event.type) || 999} #{event.created_at}"
   end
 
   puts "## #{info.name}"
