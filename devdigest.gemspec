@@ -18,10 +18,13 @@ Gem::Specification.new do |spec|
   spec.add_dependency "github_api", "~> 0.8.9"
   spec.add_dependency "netrc",      "~> 0.7.7"
 
+  spec.add_development_dependency "rspec", "~> 2.12.0"
+
   spec.files = %w(Gemfile README.md)
   spec.files << "#{lib}.gemspec"
   spec.files += Dir.glob("man/*")
   spec.files += Dir.glob("lib/**/*.rb")
+  spec.files += Dir.glob("spec/**/*.rb")
 
   dev_null    = File.exist?("/dev/null") ? "/dev/null" : "NUL"
   git_files   = `git ls-files -z 2>#{dev_null}`
