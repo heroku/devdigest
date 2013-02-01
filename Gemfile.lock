@@ -11,8 +11,14 @@ GEM
       oauth2
     hashie (1.2.0)
     httpauth (0.2.0)
+    i18n (0.6.1)
     jwt (0.1.5)
       multi_json (>= 1.0)
+    mail (2.5.3)
+      i18n (>= 0.4.0)
+      mime-types (~> 1.16)
+      treetop (~> 1.4.8)
+    mime-types (1.19)
     multi_json (1.5.0)
     multipart-post (1.1.5)
     nokogiri (1.5.6)
@@ -22,10 +28,19 @@ GEM
       jwt (~> 0.1.4)
       multi_json (~> 1.0)
       rack (~> 1.2)
+    polyglot (0.3.3)
+    pony (1.4)
+      mail (> 2.0)
     rack (1.5.1)
+    rdiscount (1.6.8)
+    treetop (1.4.12)
+      polyglot
+      polyglot (>= 0.3.1)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   github_api
+  pony
+  rdiscount
