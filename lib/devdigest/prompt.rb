@@ -1,6 +1,6 @@
 # Lovingly borrowed from the heroku gem:
 #   https://github.com/heroku/heroku/blob/master/lib/heroku/auth.rb
-module Devdigest
+class Devdigest
   class Prompt
     attr_accessor :stdin, :stderr
 

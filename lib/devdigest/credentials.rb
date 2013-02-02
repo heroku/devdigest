@@ -1,6 +1,6 @@
 require 'netrc'
 
-module Devdigest
+class Devdigest
   class Credentials
     attr_reader :netrc, :label
 
