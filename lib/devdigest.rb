@@ -26,6 +26,8 @@ class Devdigest
   end
 
   def run
+    digest = ''
+
     # create a hash user -> array of activity
     activity = users.inject({}) do |activity, user|
       activity[user] = []
@@ -84,18 +86,20 @@ class Devdigest
         "#{order.index(event.type) || 999} #{event.created_at}"
       end
 
-      puts "## #{info.name}"
+      digest << "## #{info.name}\n"
 
       if events.empty?
-        puts "  - no tracked activity"
+        digest << "  - no tracked activity\n"
       else
         events[0, 6].each do |repo, event|
           summary = important_events[event.type].call(event)
-          puts "  - **#{repo}** #{summary}"
+          digest << "  - **#{repo}** #{summary}\n"
         end
       end
 
-      puts "\n"
+      digest << "\n"
     end
+
+    digest
   end
 end

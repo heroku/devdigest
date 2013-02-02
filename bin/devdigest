@@ -43,4 +43,4 @@ def authenticate
 end
 
 authenticate
-Devdigest.run token: token
+puts Devdigest.run(token: token)
