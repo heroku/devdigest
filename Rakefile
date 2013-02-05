@@ -5,11 +5,13 @@ Bundler.require
 
 require './devdigest'
 
+desc "Run the digest and print to stdout"
 task :digest do
   since = Time.now-24*60*60
   puts Devdigest.run(since)
 end
 
+desc "Email digest"
 task :daily_email do
   case Time.now.wday
   when 0, 6
