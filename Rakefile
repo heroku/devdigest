@@ -8,7 +8,7 @@ require './devdigest'
 desc "Run the digest and print to stdout"
 task :digest do
   since = Time.now-24*60*60
-  puts Devdigest.run(since)
+  puts Devdigest.new(since).run
 end
 
 desc "Email digest"
@@ -25,7 +25,7 @@ task :daily_email do
     puts "Weekday - fetching activity since #{since}"
   end
 
-  digest   = Devdigest.run(since)
+  digest   = Devdigest.new(since).run
   markdown = RDiscount.new(digest)
   subject  = "Team digest - #{Time.now.strftime("%A")}"
 

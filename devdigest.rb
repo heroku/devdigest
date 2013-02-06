@@ -1,8 +1,23 @@
 class Devdigest
-  def self.run(since)
-    digest = ""
-    github = Github.new oauth_token: ENV["GITHUB_TOKEN"]
+  def initialize(since)
+    @since  = since
+    @digest = ""
+  end
 
+  def run
+    run_github_digest
+    run_zendesk_digest
+    @digest
+  end
+
+  def add(row)
+    @digest << "#{row}\n"
+  end
+
+  def run_github_digest
+    add "# Github activity"
+
+    github = Github.new oauth_token: ENV["GITHUB_TOKEN"]
     org   = ENV["GITHUB_ORG"]
     repos = ENV["GITHUB_REPOS"].split(",").sort
     users = ENV["GITHUB_USERS"].split(",").sort
@@ -16,7 +31,7 @@ class Devdigest
     # collect activities
     repos.each do |repo|
       github.activity.events.repository(org, repo) do |event|
-        break if Time.parse(event.created_at) < since
+        break if Time.parse(event.created_at) < @since
         next unless users.include?(event.actor.login)
         activity[event.actor.login] << [repo, event]
       end
@@ -65,20 +80,99 @@ class Devdigest
         "#{order.index(event.type) || 999} #{event.created_at}"
       end
 
-      digest << "## #{info.name}\n"
+      add "## #{info.name}"
 
       if events.empty?
-        digest << "  - no tracked activity\n"
+        add "  - no tracked activity"
       else
         events[0, 6].each do |repo, event|
           summary = important_events[event.type].call(event)
-          digest << "  - **#{repo}** #{summary}\n"
+          add "  - **#{repo}** #{summary}"
         end
       end
 
-      digest << "\n"
+      add("")
+    end
+  end
+
+  def run_zendesk_digest
+    add "# Support"
+
+    groups = %w( opened closed updated ).inject({}) { |h, status| h[status] = []; h }
+
+    find_tickets.each do |ticket|
+      break if Time.parse(ticket["updated_at"]) < @since.utc
+      case ticket["status"]
+      when "new"
+        groups["opened"] << ticket
+      when "open"
+        groups["updated"] << ticket
+      when "closed", "solved"
+        groups["closed"] << ticket
+      end
     end
 
-    digest
+    # get agents assigned to a ticket
+    agents = find_agents
+    groups.values.flatten.each do |ticket|
+      agent = agents.detect { |agent| agent["id"] == ticket["assignee_id"] }
+      ticket.merge!("agent" => agent) if agent
+    end
+
+    if groups["opened"].empty?
+      add "  - No new tickets"
+    else
+      add << "  - Opened tickets:"
+      groups["opened"].each do |ticket|
+        add "    - #{ticket_entry(ticket)}"
+      end
+    end
+
+    unless groups["updated"].empty?
+      add "  - Updated tickets:"
+      groups["updated"].each do |ticket|
+        add "    - #{ticket_entry(ticket)}"
+      end
+    end
+
+    unless groups["closed"].empty?
+      add "  - Closed tickets:"
+      groups["closed"].each do |ticket|
+        add "    - #{ticket_entry(ticket)}"
+      end
+    end
+  end
+
+  def zendesk
+    @zendesk ||= RestClient::Resource.new("https://heroku.zendesk.com/api/v2",
+      :user => "#{ENV["ZENDESK_USER"]}/token", :password => ENV["ZENDESK_PASSWORD"])
+  end
+
+  def find_tickets
+    raw = zendesk["/search.json"].get(:params => {
+      :query      => "type:ticket group:#{ENV["ZENDESK_GROUP"]}",
+      :sort_by    => "updated_at",
+      :sort_order => "desc",
+    })
+    Yajl::Parser.parse(raw)["results"]
+  end
+
+  def find_agents
+    raw = zendesk["/search.json"].get(:params => {
+      :query => "type:user group:#{ENV["ZENDESK_GROUP"]}"
+    })
+    Yajl::Parser.parse(raw)["results"]
+  end
+
+  def ticket_entry(ticket)
+    description = ticket["description"].split("\n")[0]
+    short_description = description.split(/\s+/)[0, 12].join(" ") << "..."
+    url = ticket_url(ticket)
+    author_info = " by #{ticket["agent"]["name"]}" if ticket.has_key?("agent")
+    "[#{short_description}](#{url})#{author_info}"
+  end
+
+  def ticket_url(ticket)
+    "https://support.heroku.com/tickets/#{ticket["id"]}"
   end
 end

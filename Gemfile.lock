@@ -33,9 +33,12 @@ GEM
       mail (> 2.0)
     rack (1.5.1)
     rdiscount (1.6.8)
+    rest-client (1.6.7)
+      mime-types (>= 1.16)
     treetop (1.4.12)
       polyglot
       polyglot (>= 0.3.1)
+    yajl-ruby (1.1.0)
 
 PLATFORMS
   ruby
@@ -44,3 +47,5 @@ DEPENDENCIES
   github_api
   pony
   rdiscount
+  rest-client
+  yajl-ruby

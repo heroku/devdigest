@@ -48,3 +48,9 @@ Sorry, this is not yet a service! For now:
     ## Pedro Belo
       - **api** [opened pull Account endpoints](https://api.github.com/repos/heroku/api/pulls/789)
       - **api** pushed another fix
+
+    # Support
+      - No new tickets
+      - Closed tickets:
+        - [Can't make API calls...](https://support.heroku.com/tickets/123) by brandur@heroku.com
+        - [Having trouble with my SSH key...](https://support.heroku.com/tickets/456) by pedro@heroku.com
