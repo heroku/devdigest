@@ -6,6 +6,7 @@ class Devdigest
 
   def run
     run_github_digest
+    run_pagerduty_digest
     run_zendesk_digest
     @digest
   end
@@ -95,6 +96,25 @@ class Devdigest
     end
   end
 
+  def run_pagerduty_digest
+    add "# On-call alerts"
+
+    pagerduty = RestClient::Resource.new(ENV["PAGERDUTY_URL"])
+    raw = pagerduty["api/v1/incidents?since=#{@since.iso8601}&until=#{Time.now.iso8601}&service=#{ENV["PAGERDUTY_SERVICE"]}"].get
+    incidents = Yajl::Parser.parse(raw)["incidents"]
+    if incidents.empty?
+      add "  - No incidents"
+    else
+      incidents.each do |incident|
+        description = incident["trigger_summary_data"]["description"]
+        url = incident["html_url"]
+        add "  - [#{description}](#{url})"
+      end
+    end
+
+    add ""
+  end
+
   def run_zendesk_digest
     add "# Support"
 
@@ -141,6 +161,8 @@ class Devdigest
         add "    - #{ticket_entry(ticket)}"
       end
     end
+
+    add ""
   end
 
   def zendesk
