@@ -122,7 +122,7 @@ class Devdigest
     if groups["opened"].empty?
       add "  - No new tickets"
     else
-      add << "  - Opened tickets:"
+      add "  - Opened tickets:"
       groups["opened"].each do |ticket|
         add "    - #{ticket_entry(ticket)}"
       end
