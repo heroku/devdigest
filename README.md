@@ -49,6 +49,9 @@ Sorry, this is not yet a service! For now:
       - **api** [opened pull Account endpoints](https://api.github.com/repos/heroku/api/pulls/789)
       - **api** pushed another fix
 
+    # On-call alerts
+      - [Pedro Belo paged: testing](http://heroku.pagerduty.com/incidents/PGLWM7J)
+
     # Support
       - No new tickets
       - Closed tickets:
