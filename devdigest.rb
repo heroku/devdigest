@@ -31,7 +31,7 @@ class Devdigest
     # collect activities
     repos.each do |repo|
       github.activity.events.repository(org, repo) do |event|
-        break if Time.parse(event.created_at) < @since
+        break if Time.parse(event.created_at) < @since.utc
         next unless users.include?(event.actor.login)
         activity[event.actor.login] << [repo, event]
       end
