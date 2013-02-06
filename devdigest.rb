@@ -54,11 +54,14 @@ class Devdigest
       },
       "PushEvent" => lambda { |event|
         commits  = event.payload.commits
-        messages = commits.map { |commit| commit.message.split("\n").first }
-        if messages.size == 1
-          "pushed #{messages.first}"
+        if commits.size == 1
+          message = commits.first.message.split("\n").first
+          url     = commits.first.url
+          "pushed [#{message}](#{url})"
         else
-          "pushed #{messages.size} commits: #{messages.last}"
+          message = commits.last.message.split("\n").first
+          url     = commits.last.url
+          "pushed #{commits.size} commits: [#{message}](#{url})"
         end
       },
       "IssueCommentEvent" => lambda { |event|
