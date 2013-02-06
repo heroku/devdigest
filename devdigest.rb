@@ -16,6 +16,7 @@ class Devdigest
   end
 
   def run_github_digest
+    return unless %w{GITHUB_ORG GITHUB_REPOS GITHUB_TOKEN GITHUB_USERS}.all? {|key| ENV.has_key?(key)}
     add "# Github activity"
 
     github = Github.new oauth_token: ENV["GITHUB_TOKEN"]
@@ -53,11 +54,14 @@ class Devdigest
       },
       "PushEvent" => lambda { |event|
         commits  = event.payload.commits
-        messages = commits.map { |commit| commit.message.split("\n").first }
-        if messages.size == 1
-          "pushed #{messages.first}"
+        if commits.size == 1
+          message = commits.first.message.split("\n").first
+          url     = commits.first.url
+          "pushed [#{message}](#{url})"
         else
-          "pushed #{messages.size} commits: #{messages.last}"
+          message = commits.last.message.split("\n").first
+          url     = commits.last.url
+          "pushed #{commits.size} commits: [#{message}](#{url})"
         end
       },
       "IssueCommentEvent" => lambda { |event|
@@ -97,6 +101,7 @@ class Devdigest
   end
 
   def run_pagerduty_digest
+    return unless %w{PAGERDUTY_SERVICE PAGERDUTY_URL}.all? {|key| ENV.has_key?(key)}
     add "# On-call alerts"
 
     pagerduty = RestClient::Resource.new(ENV["PAGERDUTY_URL"])
@@ -120,6 +125,7 @@ class Devdigest
   end
 
   def run_zendesk_digest
+    return unless %w{ZENDESK_GROUP ZENDESK_PASSWORD ZENDESK_USER}.all? {|key| ENV.has_key?(key)}
     add "# Support"
 
     groups = %w( opened closed updated ).inject({}) { |h, status| h[status] = []; h }
