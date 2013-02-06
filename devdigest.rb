@@ -106,7 +106,11 @@ class Devdigest
       add "  - No incidents"
     else
       incidents.each do |incident|
-        description = incident["trigger_summary_data"]["description"]
+        description = if incident["trigger_summary_data"]
+          incident["trigger_summary_data"]["description"]
+        else
+          "[no description]"
+        end
         url = incident["html_url"]
         add "  - [#{description}](#{url})"
       end
