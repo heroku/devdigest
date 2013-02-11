@@ -209,6 +209,6 @@ class Devdigest
   end
 
   def github_url(api_url)
-    api_url.sub("api.github.com/repos", "github.com/")
+    api_url.sub("api.github.com/repos", "github.com")
   end
 end
