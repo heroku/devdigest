@@ -44,13 +44,13 @@ class Devdigest
         action = event.payload.action # opened/closed/reopened/synchronize
         title  = event.payload.pull_request.title
         url    = event.payload.pull_request.url
-        "[#{action} pull #{title}](#{url})"
+        "#{action} [pull #{title}](#{url})"
       },
       "IssuesEvent" => lambda { |event|
         action = event.payload.action # opened/closed/reopened
         title  = event.payload.issue.title
         url    = event.payload.issue.url
-        "[#{action} issue #{title}](#{url})"
+        "#{action} [issue #{title}](#{url})"
       },
       "PushEvent" => lambda { |event|
         commits  = event.payload.commits
@@ -67,7 +67,7 @@ class Devdigest
       "IssueCommentEvent" => lambda { |event|
         title  = event.payload.issue.title
         url    = event.payload.issue.title
-        "[commented on #{title}](#{url})"
+        "commented on [#{title}](#{url})"
       },
     }
 
