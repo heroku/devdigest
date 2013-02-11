@@ -66,7 +66,7 @@ class Devdigest
       },
       "IssueCommentEvent" => lambda { |event|
         title  = event.payload.issue.title
-        url    = event.payload.issue.title
+        url    = event.payload.issue.url
         "commented on [#{title}](#{github_url(url)})"
       },
     }
