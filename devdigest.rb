@@ -6,8 +6,8 @@ class Devdigest
 
   def run
     run_github_digest
-    run_pagerduty_digest
-    run_zendesk_digest
+    # run_pagerduty_digest
+    # run_zendesk_digest
     @digest
   end
 
@@ -44,30 +44,30 @@ class Devdigest
         action = event.payload.action # opened/closed/reopened/synchronize
         title  = event.payload.pull_request.title
         url    = event.payload.pull_request.url
-        "[#{action} pull #{title}](#{url})"
+        "#{action} [pull #{title}](#{github_url(url)})"
       },
       "IssuesEvent" => lambda { |event|
         action = event.payload.action # opened/closed/reopened
         title  = event.payload.issue.title
         url    = event.payload.issue.url
-        "[#{action} issue #{title}](#{url})"
+        "#{action} [issue #{title}](#{github_url(url)})"
       },
       "PushEvent" => lambda { |event|
         commits  = event.payload.commits
         if commits.size == 1
           message = commits.first.message.split("\n").first
           url     = commits.first.url
-          "pushed [#{message}](#{url})"
+          "pushed [#{message}](#{github_url(url)})"
         else
           message = commits.last.message.split("\n").first
           url     = commits.last.url
-          "pushed #{commits.size} commits: [#{message}](#{url})"
+          "pushed #{commits.size} commits: [#{message}](#{github_url(url)})"
         end
       },
       "IssueCommentEvent" => lambda { |event|
         title  = event.payload.issue.title
-        url    = event.payload.issue.title
-        "[commented on #{title}](#{url})"
+        url    = event.payload.issue.url
+        "commented on [#{title}](#{github_url(url)})"
       },
     }
 
@@ -206,5 +206,9 @@ class Devdigest
 
   def ticket_url(ticket)
     "https://support.heroku.com/tickets/#{ticket["id"]}"
+  end
+
+  def github_url(api_url)
+    api_url.sub("api.github.com/repos", "github.com").sub("/pulls/", "/pull/")
   end
 end
