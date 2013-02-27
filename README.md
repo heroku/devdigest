@@ -18,7 +18,7 @@ You'll need a [Github OAuth token](https://help.github.com/articles/creating-an-
 
     cp .env.sample .env
     vim .env # fill in with the token and your team details
-    foreman run rake digest
+    foreman run bundle exec rake digest
 
 
 ## Deployment
