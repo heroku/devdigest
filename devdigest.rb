@@ -6,8 +6,8 @@ class Devdigest
 
   def run
     run_github_digest
-    run_pagerduty_digest
-    run_zendesk_digest
+    # run_pagerduty_digest
+    # run_zendesk_digest
     @digest
   end
 
@@ -209,6 +209,6 @@ class Devdigest
   end
 
   def github_url(api_url)
-    api_url.sub("api.github.com/repos", "github.com")
+    api_url.sub("api.github.com/repos", "github.com").sub("/pulls/", "/pull/")
   end
 end
