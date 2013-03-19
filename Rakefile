@@ -52,6 +52,11 @@ end
 
 desc "Email weekly operational digest"
 task :weekly_ops_email do
+  if Time.now.wday != 1
+    puts "Not monday, skipping"
+    exit 0
+  end
+
   since = Time.now-7*24*60*60
   puts "Fetching activity since #{since}"
 
