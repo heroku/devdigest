@@ -1,7 +1,8 @@
 class Devdigest
-  def initialize(since)
+  def initialize(since, options={})
     @since  = since
     @digest = ""
+    @only   = options[:only]
   end
 
   def run
@@ -15,8 +16,13 @@ class Devdigest
     @digest << "#{row}\n"
   end
 
+  def skip?(section)
+    @only && !@only.include?(section)
+  end
+
   def run_github_digest
     return unless %w{GITHUB_ORG GITHUB_REPOS GITHUB_TOKEN GITHUB_USERS}.all? {|key| ENV.has_key?(key)}
+    return if skip?("github")
     add "# Github activity"
 
     github = Github.new oauth_token: ENV["GITHUB_TOKEN"]
@@ -102,6 +108,7 @@ class Devdigest
 
   def run_pagerduty_digest
     return unless %w{PAGERDUTY_SERVICE PAGERDUTY_URL}.all? {|key| ENV.has_key?(key)}
+    return if skip?("pagerduty")
     add "# On-call alerts"
 
     pagerduty = RestClient::Resource.new(ENV["PAGERDUTY_URL"])
@@ -126,6 +133,7 @@ class Devdigest
 
   def run_zendesk_digest
     return unless %w{ZENDESK_GROUP ZENDESK_PASSWORD ZENDESK_USER}.all? {|key| ENV.has_key?(key)}
+    return if skip?("zendesk")
     add "# Support"
 
     groups = %w( opened closed updated ).inject({}) { |h, status| h[status] = []; h }
