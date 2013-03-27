@@ -109,9 +109,24 @@ class Devdigest
   def run_pagerduty_digest
     return unless %w{PAGERDUTY_SERVICE PAGERDUTY_URL}.all? {|key| ENV.has_key?(key)}
     return if skip?("pagerduty")
-    add "# On-call alerts"
 
     pagerduty = RestClient::Resource.new(ENV["PAGERDUTY_URL"])
+
+    add "# On-call Schedule"
+    ENV['PAGERDUTY_SCHEDULE'].split(',').each do |schedule_id|
+      users = []
+      raw = pagerduty["api/v1/schedules/#{schedule_id}"].get
+      schedule = Yajl::Parser.parse(raw)['schedule']
+      yesterday, tomorrow = (Time.now - 86400).iso8601, (Time.now + 86400).iso8601
+      raw = pagerduty["api/v1/schedules/#{schedule_id}/entries?overflow=true&since=#{yesterday}&until=#{tomorrow}"].get
+      entries = Yajl::Parser.parse(raw)['entries']
+      entries.sort_by {|entry| entry['end']}.each do |entry|
+        users << entry['user']['name']
+      end
+      add "#{schedule['name']}: #{users.join(' > ')}"
+    end
+
+    add "# On-call alerts"
     raw = pagerduty["api/v1/incidents?since=#{@since.iso8601}&until=#{Time.now.iso8601}&service=#{ENV["PAGERDUTY_SERVICE"]}"].get
     incidents = Yajl::Parser.parse(raw)["incidents"]
     if incidents.empty?
