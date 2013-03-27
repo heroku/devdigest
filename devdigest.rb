@@ -112,7 +112,7 @@ class Devdigest
 
     pagerduty = RestClient::Resource.new(ENV["PAGERDUTY_URL"])
 
-    add "# Scheduled"
+    add "# On-call Schedule"
     ENV['PAGERDUTY_SCHEDULE'].split(',').each do |schedule_id|
       users = []
       raw = pagerduty["api/v1/schedules/#{schedule_id}"].get
