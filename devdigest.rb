@@ -125,6 +125,7 @@ class Devdigest
       end
       add "#{schedule['name']}: #{users.join(' > ')}"
     end
+    add ""
 
     add "# On-call alerts"
     raw = pagerduty["api/v1/incidents?since=#{@since.iso8601}&until=#{Time.now.iso8601}&service=#{ENV["PAGERDUTY_SERVICE"]}"].get
