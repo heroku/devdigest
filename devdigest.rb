@@ -105,7 +105,13 @@ class Devdigest
       if events.empty?
         add "  - no tracked activity"
       else
-        events[0, 6].each do |repo, event|
+        # separate pulls from other events
+        pulls, rest = events.partition do |repo, event|
+          event.type == "PullRequestEvent"
+        end
+
+        # list all pulls, and up to four other events
+        (pulls + rest)[0, pulls.size + 4].each do |repo, event|
           summary = important_events[event.type].call(event)
           add "  - **#{repo}** #{summary}"
         end
