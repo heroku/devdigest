@@ -52,8 +52,12 @@ end
 
 desc "Email weekly operational digest"
 task :weekly_ops_email do
-  if Time.now.wday != 1
-    puts "Not monday, skipping"
+  if !ENV["WEEKLY_OPS_EMAIL_DAY"]
+    abort("set WEEKLY_OPS_EMAIL_DAY to the weekday you want it sent (sunday=0)")
+  end
+
+  if Time.now.wday != ENV["WEEKLY_OPS_EMAIL_DAY"].to_i
+    puts "Not doing the ops hand-off today, skipping"
     exit 0
   end
 
