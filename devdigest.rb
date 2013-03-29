@@ -123,7 +123,7 @@ class Devdigest
       entries.sort_by {|entry| entry['end']}.each do |entry|
         users << entry['user']['name']
       end
-      add "#{schedule['name']}: #{users.join(' > ')}"
+      add "  - #{schedule['name']}: #{users.join(' > ')}"
     end
     add ""
 
