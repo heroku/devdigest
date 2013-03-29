@@ -38,10 +38,19 @@ class Devdigest
 
     # collect activities
     repos.each do |repo|
-      github.activity.events.repository(org, repo) do |event|
-        break if Time.parse(event.created_at) < @since.utc
-        next unless users.include?(event.actor.login)
-        activity[event.actor.login] << [repo, event]
+      res = github.activity.events.repository(org, repo)
+      collected_all = false
+      res.each_page do |page|
+        page.each do |event|
+          if Time.parse(event.created_at) < @since.utc
+            collected_all = true
+            break
+          end
+
+          next unless users.include?(event.actor.login)
+          activity[event.actor.login] << [repo, event]
+        end
+        break if collected_all
       end
     end
 
