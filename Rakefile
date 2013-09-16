@@ -11,6 +11,12 @@ task :digest do
   puts Devdigest.new(since).run
 end
 
+desc "Run the weekly digest and print to stdout"
+task :weekly_digest do
+  since = Time.now-7*24*60*60
+  puts Devdigest.new(since).run
+end
+
 desc "Email daily digest"
 task :daily_email do
   case Time.now.wday
