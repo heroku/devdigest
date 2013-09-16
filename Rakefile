@@ -33,7 +33,8 @@ task :daily_email do
 
   digest   = Devdigest.new(since).run
   markdown = RDiscount.new(digest)
-  subject  = "Team digest - #{Time.now.strftime("%A")}"
+  team = ENV["ZENDESK_GROUP"] || "Team"
+  subject  = "#{team} digest - #{Time.now.strftime("%A")}"
 
   Pony.mail({
     :to      => ENV["EMAIL_TO"],

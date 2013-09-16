@@ -79,7 +79,7 @@ class Devdigest
           end
 
           next unless users.include?(event.actor.login)
-          
+
           title, action = parse_event(event)
           if (title && action)
             repo_activity[event.actor.login] ||= {}
@@ -105,13 +105,13 @@ class Devdigest
       info = github.users.get user: user
       add "## #{info.name}"
 
-      if repo_activity[user].empty?
+      if repo_activity[user].nil?
         add "  * no tracked activity"
       else
         repo_activity[user].keys.each do |repo|
-          add "  * **#{repo}** "
+          add "* **#{repo}**"
           repo_activity[user][repo].keys.each do |title|
-            add "   * #{title} - #{repo_activity[user][repo][title].reverse.join(', ')}"
+            add "  * #{title} - #{repo_activity[user][repo][title].reverse.join(', ')}"
           end
         end
       end
