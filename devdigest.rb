@@ -20,6 +20,35 @@ class Devdigest
     @only && !@only.include?(section)
   end
 
+  def parse_event(event)
+    case event.type
+    when "PullRequestEvent"
+      action = event.payload.action # opened/closed/reopened/synchronize
+      title  = event.payload.pull_request.title
+      url    = event.payload.pull_request.url
+      [title, "[#{action} pull](#{github_url(url)})"]
+    when "IssuesEvent"
+      action = event.payload.action # opened/closed/reopened
+      title  = event.payload.issue.title
+      url    = event.payload.issue.url
+      [title, "[#{action} issue](#{github_url(url)})"]
+    when "PushEvent"
+      commits  = event.payload.commits
+      message = commits.first.message.split("\n").first
+      if commits.size == 1
+        url     = commits.first.url
+        [message,"[pushed](#{github_url(url)})"]
+      else
+        url     = commits.last.url
+        [message,"[pushed #{commits.size} commits](#{github_url(url)})"]
+      end
+    when "IssueCommentEvent"
+      title  = event.payload.issue.title
+      url    = event.payload.issue.url
+      [title,"[commented](#{github_url(url)})"]
+    end
+  end
+
   def run_github_digest
     return unless %w{GITHUB_ORG GITHUB_REPOS GITHUB_TOKEN GITHUB_USERS}.all? {|key| ENV.has_key?(key)}
     return if skip?("github")
@@ -36,6 +65,8 @@ class Devdigest
       activity
     end
 
+    repo_activity = {}
+
     # collect activities
     repos.each do |repo|
       res = github.activity.events.repository(org, repo)
@@ -48,75 +79,33 @@ class Devdigest
           end
 
           next unless users.include?(event.actor.login)
-          activity[event.actor.login] << [repo, event]
+
+          title, action = parse_event(event)
+          if (title && action)
+            repo_activity[event.actor.login] ||= {}
+            repo_activity[event.actor.login][repo] ||= {}
+            repo_activity[event.actor.login][repo][title] ||= []
+            repo_activity[event.actor.login][repo][title] << action
+          end
         end
         break if collected_all
       end
     end
 
-    important_events = {
-      "PullRequestEvent" => lambda { |event|
-        action = event.payload.action # opened/closed/reopened/synchronize
-        title  = event.payload.pull_request.title
-        url    = event.payload.pull_request.url
-        "#{action} [pull #{title}](#{github_url(url)})"
-      },
-      "IssuesEvent" => lambda { |event|
-        action = event.payload.action # opened/closed/reopened
-        title  = event.payload.issue.title
-        url    = event.payload.issue.url
-        "#{action} [issue #{title}](#{github_url(url)})"
-      },
-      "PushEvent" => lambda { |event|
-        commits  = event.payload.commits
-        if commits.size == 1
-          message = commits.first.message.split("\n").first
-          url     = commits.first.url
-          "pushed [#{message}](#{github_url(url)})"
-        else
-          message = commits.last.message.split("\n").first
-          url     = commits.last.url
-          "pushed #{commits.size} commits: [#{message}](#{github_url(url)})"
-        end
-      },
-      "IssueCommentEvent" => lambda { |event|
-        title  = event.payload.issue.title
-        url    = event.payload.issue.url
-        "commented on [#{title}](#{github_url(url)})"
-      },
-    }
-
-    # the events above are in order of priority
-    order = important_events.keys
-
-    activity.keys.each do |user|
+    users.each do |user|
       info = github.users.get user: user
-      events = activity[user].select do |repo, event|
-        important_events.has_key?(event.type)
-      end
-
-      # voodoo magic I don't want to bother making readable without classes
-      events.sort_by! do |repo, event|
-        "#{order.index(event.type) || 999} #{event.created_at}"
-      end
-
       add "## #{info.name}"
 
-      if events.empty?
-        add "  - no tracked activity"
+      if repo_activity[user].nil?
+        add "  * no tracked activity"
       else
-        # separate pulls from other events
-        pulls, rest = events.partition do |repo, event|
-          event.type == "PullRequestEvent"
-        end
-
-        # list all pulls, and up to four other events
-        (pulls + rest)[0, pulls.size + 4].each do |repo, event|
-          summary = important_events[event.type].call(event)
-          add "  - **#{repo}** #{summary}"
+        repo_activity[user].keys.each do |repo|
+          add "* **#{repo}**"
+          repo_activity[user][repo].keys.each do |title|
+            add "  * #{title} - #{repo_activity[user][repo][title].reverse.join(', ')}"
+          end
         end
       end
-
       add("")
     end
   end
