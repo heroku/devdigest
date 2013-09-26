@@ -92,15 +92,6 @@ class Devdigest
       end
     end
 
-## Raul Barroso
-#  - **dashboard** 
-#    - pull [Add redirect from /settings to /account](https://github.com/heroku/dashboard/pull/1373)
-#      - opened, closed
-#    - pull [Add spec for settings redirect](https://github.com/heroku/dashboard/pull/1374)
-#      - opened, closed
-#    - pull [Migrate events and pageViews to GTM](https://github.com/heroku/dashboard/pull/1377)
-#      - opened, closed
-  
     users.each do |user|
       info = github.users.get user: user
       add "## #{info.name}"
