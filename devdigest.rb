@@ -36,38 +36,25 @@ class Devdigest
       activity[user] = []
       activity
     end
+    blocked_issues = []
+    pull_requests = []
 
     repos.each do |repo|
-      blocked_issues = github.issues.list(org, repo, labels: 'blocked')
-      unless blocked_issues.empty?
-        add("## Blocked Issues")
-        blocked_issues.each_page do |page|
-          page.each do |blocked_issue|
-            author = blocked_issue.user.login
-            assignee = blocked_issue.assignee && blocked_issue.assignee.login || 'null'
-            add("[#{blocked_issue.title}](#{github_url(blocked_issue.url)}) by #{author} assigned to #{assignee}")
-          end
+      # needs to be user: org due to weirdness in client: https://github.com/peter-murach/github/blob/master/lib/github_api/issues.rb#L134
+      github.issues.list(user: org, repo: repo, labels: 'blocked').each_page do |page|
+        page.each do |blocked_issue|
+          author = blocked_issue.user.login
+          assignee = blocked_issue.assignee && blocked_issue.assignee.login || 'null'
+          blocked_issues << "  - **#{repo}** [#{blocked_issue.title}](#{github_url(blocked_issue.url)}) by #{author} assigned to #{assignee}"
         end
-        add("")
-      else
-        add("## No Blocked Issues!")
-        add("")
       end
 
-      pull_requests = github.pull_requests.list(org, repo)
-      unless pull_requests.empty?
-        add("## Pull Requests")
-        pull_requests.each_page do |page|
-          page.each do |pull_request|
-            author = pull_request.user.login
-            assignee = pull_request.assignee && pull_request.assignee.login || 'null'
-            add("[#{pull_request.title}](#{github_url(pull_request.url)}) by #{author} assigned to #{assignee}")
-          end
+      github.pull_requests.list(org, repo).each_page do |page|
+        page.each do |pull_request|
+          author = pull_request.user.login
+          assignee = pull_request.assignee && pull_request.assignee.login || 'null'
+          pull_requests << "  - **#{repo}** [#{pull_request.title}](#{github_url(pull_request.url)}) by #{author} assigned to #{assignee}"
         end
-        add("")
-      else
-        add("## No Pull Requests!")
-        add("")
       end
 
       # collect activities
@@ -118,6 +105,22 @@ class Devdigest
         "commented on [#{title}](#{github_url(url)})"
       },
     }
+
+    if blocked_issues.empty?
+      add("## No Blocked Issues!")
+    else
+      add("## Blocked Issues")
+      blocked_issues.each {|blocked_issue| add(blocked_issue)}
+      add("")
+    end
+
+    if pull_requests.empty?
+      add("## No Pull Requests!")
+    else
+      add("## Pull Requests")
+      pull_requests.each {|pull_request| add(pull_request)}
+      add("")
+    end
 
     # the events above are in order of priority
     order = important_events.keys
