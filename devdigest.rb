@@ -24,6 +24,7 @@ class Devdigest
     return unless %w{GITHUB_ORG GITHUB_REPOS GITHUB_TOKEN GITHUB_USERS}.all? {|key| ENV.has_key?(key)}
     return if skip?("github")
     add "# Github activity"
+    add ""
 
     github = Github.new oauth_token: ENV["GITHUB_TOKEN"]
     org   = ENV["GITHUB_ORG"]
@@ -36,8 +37,40 @@ class Devdigest
       activity
     end
 
-    # collect activities
     repos.each do |repo|
+      blocked_issues = github.issues.list(org, repo, labels: 'blocked')
+      unless blocked_issues.empty?
+        add("## Blocked Issues")
+        blocked_issues.each_page do |page|
+          page.each do |blocked_issue|
+            author = blocked_issue.user.login
+            assignee = blocked_issue.assignee && blocked_issue.assignee.login || 'null'
+            add("[#{blocked_issue.title}](#{github_url(blocked_issue.url)}) by #{author} assigned to #{assignee}")
+          end
+        end
+        add("")
+      else
+        add("## No Blocked Issues!")
+        add("")
+      end
+
+      pull_requests = github.pull_requests.list(org, repo)
+      unless pull_requests.empty?
+        add("## Pull Requests")
+        pull_requests.each_page do |page|
+          page.each do |pull_request|
+            author = pull_request.user.login
+            assignee = pull_request.assignee && pull_request.assignee.login || 'null'
+            add("[#{pull_request.title}](#{github_url(pull_request.url)}) by #{author} assigned to #{assignee}")
+          end
+        end
+        add("")
+      else
+        add("## No Pull Requests!")
+        add("")
+      end
+
+      # collect activities
       res = github.activity.events.repository(org, repo)
       collected_all = false
       res.each_page do |page|
