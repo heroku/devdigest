@@ -34,11 +34,11 @@ class Devdigest
       [title, "[#{action} issue](#{github_url(url)})"]
     when "PushEvent"
       commits  = event.payload.commits
-      message = commits.first.message.split("\n").first
+      message = commits.first.message.split("\n").first rescue ""
       if commits.size == 1
         url     = commits.first.url
         [message,"[pushed](#{github_url(url)})"]
-      else
+      elsif commits.size > 1
         url     = commits.last.url
         [message,"[pushed #{commits.size} commits](#{github_url(url)})"]
       end
