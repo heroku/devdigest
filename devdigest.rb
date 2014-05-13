@@ -93,7 +93,7 @@ class Devdigest
           message = commits.first.message.split("\n").first
           url     = commits.first.url
           "pushed [#{message}](#{github_url(url)})"
-        else
+        elsif commits.size > 1
           message = commits.last.message.split("\n").first
           url     = commits.last.url
           "pushed #{commits.size} commits: [#{message}](#{github_url(url)})"
