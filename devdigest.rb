@@ -40,37 +40,42 @@ class Devdigest
     pull_requests = []
 
     repos.each do |repo|
-      # needs to be user: org due to weirdness in client: https://github.com/peter-murach/github/blob/master/lib/github_api/issues.rb#L134
-      github.issues.list(user: org, repo: repo, labels: 'blocked').each_page do |page|
-        page.each do |blocked_issue|
-          author = blocked_issue.user.login
-          assignee = blocked_issue.assignee && blocked_issue.assignee.login || 'null'
-          blocked_issues << "  - **#{repo}** [#{blocked_issue.title}](#{github_url(blocked_issue.url)}) by #{author} assigned to #{assignee}"
-        end
-      end
-
-      github.pull_requests.list(org, repo).each_page do |page|
-        page.each do |pull_request|
-          author = pull_request.user.login
-          assignee = pull_request.assignee && pull_request.assignee.login || 'null'
-          pull_requests << "  - **#{repo}** [#{pull_request.title}](#{github_url(pull_request.url)}) by #{author} assigned to #{assignee}"
-        end
-      end
-
-      # collect activities
-      res = github.activity.events.repository(org, repo)
-      collected_all = false
-      res.each_page do |page|
-        page.each do |event|
-          if Time.parse(event.created_at) < @since.utc
-            collected_all = true
-            break
+      begin
+        # needs to be user: org due to weirdness in client: https://github.com/peter-murach/github/blob/master/lib/github_api/issues.rb#L134
+        github.issues.list(user: org, repo: repo, labels: 'blocked').each_page do |page|
+          page.each do |blocked_issue|
+            author = blocked_issue.user.login
+            assignee = blocked_issue.assignee && blocked_issue.assignee.login || 'null'
+            blocked_issues << "  - **#{repo}** [#{blocked_issue.title}](#{github_url(blocked_issue.url)}) by #{author} assigned to #{assignee}"
           end
-
-          next unless users.include?(event.actor.login)
-          activity[event.actor.login] << [repo, event]
         end
-        break if collected_all
+
+        github.pull_requests.list(org, repo).each_page do |page|
+          page.each do |pull_request|
+            author = pull_request.user.login
+            assignee = pull_request.assignee && pull_request.assignee.login || 'null'
+            pull_requests << "  - **#{repo}** [#{pull_request.title}](#{github_url(pull_request.url)}) by #{author} assigned to #{assignee}"
+          end
+        end
+
+        # collect activities
+        res = github.activity.events.repository(org, repo)
+        collected_all = false
+        res.each_page do |page|
+          page.each do |event|
+            if Time.parse(event.created_at) < @since.utc
+              collected_all = true
+              break
+            end
+
+            next unless users.include?(event.actor.login)
+            activity[event.actor.login] << [repo, event]
+          end
+          break if collected_all
+        end
+      rescue Exception => error
+        puts "#{error.class}: #{error.message}\n\n"
+        puts error.backtrace.join("\n")
       end
     end
 
