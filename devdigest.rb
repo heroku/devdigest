@@ -10,6 +10,8 @@ class Devdigest
     run_pagerduty_digest
     run_zendesk_digest
     @digest
+  rescue => e
+    e.to_s
   end
 
   def add(row)
