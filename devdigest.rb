@@ -10,8 +10,6 @@ class Devdigest
     run_pagerduty_digest
     run_zendesk_digest
     @digest
-  rescue => e
-    e.to_s
   end
 
   def add(row)
@@ -160,6 +158,9 @@ class Devdigest
       pull_requests.each {|pull_request| add(pull_request)}
       add("")
     end
+
+  rescue => e
+    add e.to_s
   end
 
   def run_pagerduty_digest
@@ -201,6 +202,9 @@ class Devdigest
     end
 
     add ""
+
+  rescue => e
+    add e.to_s
   end
 
   def run_zendesk_digest
@@ -253,6 +257,9 @@ class Devdigest
     end
 
     add ""
+
+  rescue => e
+    add e.to_s
   end
 
   def zendesk
