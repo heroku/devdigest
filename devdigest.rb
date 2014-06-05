@@ -42,7 +42,6 @@ class Devdigest
     repos.each do |repo_and_org|
       # repo can contain an override org
       repo, repo_org = repo_and_org.split("@").push(org)
-      puts "repo=#{repo}, repo_org=#{repo_org}"
       # needs to be user: org due to weirdness in client: https://github.com/peter-murach/github/blob/master/lib/github_api/issues.rb#L134
       github.issues.list(user: repo_org, repo: repo, labels: 'blocked').each_page do |page|
         page.each do |blocked_issue|
