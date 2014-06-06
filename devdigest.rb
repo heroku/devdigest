@@ -42,22 +42,6 @@ class Devdigest
     repos.each do |repo_and_org|
       # repo can contain an override org
       repo, repo_org = repo_and_org.split("@").push(org)
-      # needs to be user: org due to weirdness in client: https://github.com/peter-murach/github/blob/master/lib/github_api/issues.rb#L134
-      github.issues.list(user: repo_org, repo: repo, labels: 'blocked').each_page do |page|
-        page.each do |blocked_issue|
-          author = blocked_issue.user && blocked_issue.user.login || 'null'
-          assignee = blocked_issue.assignee && blocked_issue.assignee.login || 'null'
-          blocked_issues << "  - **#{repo}** [#{blocked_issue.title}](#{github_url(blocked_issue.url)}) by #{author} assigned to #{assignee}"
-        end
-      end
-
-      github.pull_requests.list(repo_org, repo).each_page do |page|
-        page.each do |pull_request|
-          author = pull_request.user && pull_request.user.login || 'null'
-          assignee = pull_request.assignee && pull_request.assignee.login || 'null'
-          pull_requests << "  - **#{repo}** [#{pull_request.title}](#{github_url(pull_request.url)}) by #{author} assigned to #{assignee}"
-        end
-      end
 
       # collect activities
       res = github.activity.events.repository(repo_org, repo)
