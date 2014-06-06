@@ -160,6 +160,7 @@ class Devdigest
 
   rescue => e
     add e.to_s
+    e.backtrace.each { |line| add('  ' + line) }
   end
 
   def run_pagerduty_digest
@@ -204,6 +205,7 @@ class Devdigest
 
   rescue => e
     add e.to_s
+    e.backtrace.each { |line| add('  ' + line) }
   end
 
   def run_zendesk_digest
@@ -259,6 +261,7 @@ class Devdigest
 
   rescue => e
     add e.to_s
+    e.backtrace.each { |line| add('  ' + line) }
   end
 
   def zendesk
