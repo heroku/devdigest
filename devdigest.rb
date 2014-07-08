@@ -31,32 +31,7 @@ class Devdigest
     repos = ENV["GITHUB_REPOS"].split(",").sort
     users = ENV["GITHUB_USERS"].split(",").sort
 
-    # create a hash user -> array of activity
-    activity = users.inject({}) do |activity, user|
-      activity[user] = []
-      activity
-    end
-
-    repos.each do |repo_and_org|
-      # repo can contain an override org
-      repo, repo_org = repo_and_org.split("@").push(org)
-
-      # collect activities
-      res = github.activity.events.repository(repo_org, repo)
-      collected_all = false
-      res.each_page do |page|
-        page.each do |event|
-          if Time.parse(event.created_at) < @since.utc
-            collected_all = true
-            break
-          end
-
-          next unless users.include?(event.actor.login)
-          activity[event.actor.login] << [repo, event]
-        end
-        break if collected_all
-      end
-    end
+    activity = {}
 
     important_events = {
       "PullRequestEvent" => lambda { |event|
@@ -93,31 +68,51 @@ class Devdigest
     # the events above are in order of priority
     order = important_events.keys
 
+    repos.each do |repo_and_org|
+      # repo can contain an override org
+      repo, repo_org = repo_and_org.split("@").push(org)
+
+      # collect activities
+      res = github.activity.events.repository(repo_org, repo)
+      collected_all = false
+      res.each_page do |page|
+        page.each do |event|
+          if Time.parse(event.created_at) < @since.utc
+            collected_all = true
+            break
+          end
+
+          next unless users.include?(event.actor.login) && important_events.has_key?(event.type)
+          activity[event.actor.login] ||= {}
+          activity[event.actor.login][repo] ||= []
+          activity[event.actor.login][repo] << event
+        end
+        break if collected_all
+      end
+    end
+
     activity.keys.each do |user|
       info = github.users.get user: user
-      events = activity[user].select do |repo, event|
-        important_events.has_key?(event.type)
-      end
-
-      # voodoo magic I don't want to bother making readable without classes
-      events.sort_by! do |repo, event|
-        "#{order.index(event.type) || 999} #{event.created_at}"
-      end
 
       add "## #{info.name}"
 
-      if events.empty?
+      if activity[user].values.all? {|events| events.empty?}
         add "  - no tracked activity"
       else
-        # separate pulls from other events
-        pulls, rest = events.partition do |repo, event|
-          event.type == "PullRequestEvent"
-        end
+        activity[user].each do |repo, events|
+          next if events.empty?
 
-        # list all pulls, and up to four other events
-        (pulls + rest)[0, pulls.size + 4].each do |repo, event|
-          summary = important_events[event.type].call(event)
-          add "  - **#{repo}** #{summary}"
+          # voodoo magic I don't want to bother making readable without classes
+          events.sort_by! do |event|
+            "#{order.index(event.type) || 999} #{event.created_at}"
+          end
+
+          add ""
+          add "### #{repo}"
+          events.each do |event|
+            add "  - #{important_events[event.type].call(event)}"
+          end
+
         end
       end
 
