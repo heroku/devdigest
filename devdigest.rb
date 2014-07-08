@@ -36,8 +36,6 @@ class Devdigest
       activity[user] = []
       activity
     end
-    blocked_issues = []
-    pull_requests = []
 
     repos.each do |repo_and_org|
       # repo can contain an override org
@@ -123,22 +121,6 @@ class Devdigest
         end
       end
 
-      add("")
-    end
-
-    if blocked_issues.empty?
-      add("## No Blocked Issues!")
-    else
-      add("## Blocked Issues")
-      blocked_issues.each {|blocked_issue| add(blocked_issue)}
-      add("")
-    end
-
-    if pull_requests.empty?
-      add("## No Pull Requests!")
-    else
-      add("## Pull Requests")
-      pull_requests.each {|pull_request| add(pull_request)}
       add("")
     end
 
