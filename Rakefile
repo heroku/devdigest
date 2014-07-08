@@ -25,9 +25,10 @@ task :daily_email do
     puts "Weekday - fetching activity since #{since}"
   end
 
-  digest   = Devdigest.new(since).run
-  markdown = RDiscount.new(digest)
-  subject  = "Team digest - #{Time.now.strftime("%A")}"
+  digest    = Devdigest.new(since).run
+  markdown  = RDiscount.new(digest)
+  team      = ENV["ZENDESK_GROUP"] || "Team"
+  subject   = "#{team} digest - #{Time.now.strftime("%A")}"
 
   Pony.mail({
     :to      => ENV["EMAIL_TO"],
