@@ -158,7 +158,7 @@ class Devdigest
         end
         description ||= "(no description)"
         url = incident["html_url"]
-        add "  - [#{description}](#{url}) #{incident["created_on"]}"
+        add "  - #{incident["created_on"]} [#{description}](#{url})"
       end
     end
 
