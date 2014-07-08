@@ -11,6 +11,12 @@ task :digest do
   puts Devdigest.new(since).run
 end
 
+desc "Run weekly ops and print to stdout"
+task :ops_digest do
+  since = Time.now-7*24*60*60
+  puts Devdigest.new(since, :only => %w( pagerduty zendesk )).run
+end
+
 desc "Email daily digest"
 task :daily_email do
   case Time.now.wday
