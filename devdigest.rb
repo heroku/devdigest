@@ -1,3 +1,5 @@
+require "time"
+
 class Devdigest
   def initialize(since, options={})
     @since  = since
@@ -158,7 +160,7 @@ class Devdigest
         end
         description ||= "(no description)"
         url = incident["html_url"]
-        add "  - [#{description}](#{url})"
+        add "  - [#{description}](#{url}) #{incident["created_on"].iso8601}"
       end
     end
 
