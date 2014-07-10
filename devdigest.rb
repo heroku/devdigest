@@ -133,7 +133,7 @@ class Devdigest
       entries.sort_by {|entry| entry['end']}.each do |entry|
         users << entry['user']['name']
       end
-      add "  - #{schedule['name']}: #{users.join(' > ')}"
+      add "- **#{schedule['name']}**: #{users.join(' > ')}"
     end
     add ""
 
@@ -188,23 +188,27 @@ class Devdigest
     end
 
     if groups["opened"].empty?
-      add "- No new tickets"
+      add "- **No opened tickets**"
     else
-      add "- Opened tickets:"
+      add "- **Opened tickets**:"
       groups["opened"].each do |ticket|
         add "  - #{ticket_entry(ticket)}"
       end
     end
 
-    unless groups["updated"].empty?
-      add "- Updated tickets:"
+    if groups["updated"].empty?
+      add "- **No updated tickets**"
+    else
+      add "- **Updated tickets**:"
       groups["updated"].each do |ticket|
         add "  - #{ticket_entry(ticket)}"
       end
     end
 
-    unless groups["closed"].empty?
-      add "- Closed tickets:"
+    if groups["closed"].empty?
+      add "- **No closed tickets**"
+    else
+      add "- **Closed tickets**:"
       groups["closed"].each do |ticket|
         add "  - #{ticket_entry(ticket)}"
       end
