@@ -88,12 +88,12 @@ class Devdigest
       end
     end
 
-    activity.keys.each do |user|
+    activity.keys.sort.each do |user|
       info = github.users.get user: user
 
       add "- **#{info.name}**"
 
-      if activity[user].values.all? {|repos| repos.empty?}
+      if activity[user].values.all? {|repo| repo.empty?}
         add "  - no tracked activity"
       else
         activity[user].each do |repo, events|
