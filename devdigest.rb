@@ -35,37 +35,33 @@ class Devdigest
 
     important_events = {
       "PullRequestEvent" => lambda { |event|
-        action = event.payload.action # opened/closed/reopened/synchronize
-        title  = event.payload.pull_request.title
-        url    = event.payload.pull_request.url
-        "#{action} [pull #{title}](#{github_url(url)})"
+        action        = event.payload.action # opened/closed/reopened/synchronize
+        pull_request  = event.payload.pull_request
+        link          = "[#{action} pull](#{github_url(pull_request.url)})"
+        [ pull_request.title, link ]
       },
       "IssuesEvent" => lambda { |event|
         action = event.payload.action # opened/closed/reopened
-        title  = event.payload.issue.title
-        url    = event.payload.issue.url
-        "#{action} [issue #{title}](#{github_url(url)})"
+        issue = event.payload.issue
+        link = "#{action} [#{action} issue](#{github_url(issue.url)})"
+        [ issue.title, link ]
       },
       "PushEvent" => lambda { |event|
         commits  = event.payload.commits
-        message = commits.first.message.split("\n").first rescue ''
-        if commits.size == 1
-          url     = commits.first.url
-          "pushed [#{message}](#{github_url(url)})"
-        elsif commits.size > 1
-          url     = commits.last.url
-          "pushed #{commits.size} commits: [#{message}](#{github_url(url)})"
+        if commits.empty?
+          ['empty','pushed']
+        else
+          [
+            commits.first.message.split("\n").first,
+            "[pushed #{commits.size}](#{github_url(commits.last.url)})"
+          ]
         end
       },
       "IssueCommentEvent" => lambda { |event|
-        title  = event.payload.issue.title
-        url    = event.payload.issue.url
-        "commented on [#{title}](#{github_url(url)})"
+        link = "[commented](#{github_url(event.payload.comment.url)})"
+        [ event.payload.issue.title, link ]
       },
     }
-
-    # the events above are in order of priority
-    order = important_events.keys
 
     repos.each do |repo_and_org|
       # repo can contain an override org
@@ -83,8 +79,10 @@ class Devdigest
 
           next unless users.include?(event.actor.login) && important_events.has_key?(event.type)
           activity[event.actor.login] ||= {}
-          activity[event.actor.login][repo] ||= []
-          activity[event.actor.login][repo] << event
+          activity[event.actor.login][repo] ||= {}
+          title, link = important_events[event.type].call(event)
+          activity[event.actor.login][repo][title] ||= []
+          activity[event.actor.login][repo][title] << link
         end
         break if collected_all
       end
@@ -95,20 +93,15 @@ class Devdigest
 
       add "* #{info.name}"
 
-      if activity[user].values.all? {|events| events.empty?}
+      if activity[user].values.all? {|repos| repos.empty?}
         add "  - no tracked activity"
       else
         activity[user].each do |repo, events|
           next if events.empty?
 
-          # voodoo magic I don't want to bother making readable without classes
-          events.sort_by! do |event|
-            "#{order.index(event.type) || 999} #{event.created_at}"
-          end
-
           add "  * #{repo}"
-          events.each do |event|
-            add "    * #{important_events[event.type].call(event)}"
+          events.each do |title, links|
+            add "    * #{title} #{links.join(', ')}"
           end
 
         end
