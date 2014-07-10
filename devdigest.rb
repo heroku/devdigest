@@ -23,7 +23,7 @@ class Devdigest
   def run_github_digest
     return unless %w{GITHUB_ORG GITHUB_REPOS GITHUB_TOKEN GITHUB_USERS}.all? {|key| ENV.has_key?(key)}
     return if skip?("github")
-    add "# Github activity"
+    add "## Github activity"
     add ""
 
     github = Github.new oauth_token: ENV["GITHUB_TOKEN"]
@@ -91,7 +91,7 @@ class Devdigest
     activity.keys.each do |user|
       info = github.users.get user: user
 
-      add "* #{info.name}"
+      add "- **#{info.name}**"
 
       if activity[user].values.all? {|repos| repos.empty?}
         add "  - no tracked activity"
@@ -99,16 +99,17 @@ class Devdigest
         activity[user].each do |repo, events|
           next if events.empty?
 
-          add "  * #{repo}"
+          add "  - #{repo}"
           events.each do |title, links|
-            add "    * #{title} #{links.join(', ')}"
+            add "    - #{title} #{links.join(', ')}"
           end
 
         end
       end
 
-      add("")
     end
+
+    add ""
 
   rescue => e
     add e.to_s
@@ -121,7 +122,7 @@ class Devdigest
 
     pagerduty = RestClient::Resource.new(ENV["PAGERDUTY_URL"])
 
-    add "# On-call Schedule"
+    add "## On-call Schedule"
     ENV['PAGERDUTY_SCHEDULE'].split(',').each do |schedule_id|
       users = []
       raw = pagerduty["api/v1/schedules/#{schedule_id}"].get
@@ -136,11 +137,11 @@ class Devdigest
     end
     add ""
 
-    add "# On-call alerts"
+    add "## On-call alerts"
     raw = pagerduty["api/v1/incidents?since=#{@since.iso8601}&until=#{Time.now.iso8601}&service=#{ENV["PAGERDUTY_SERVICE"]}"].get
     incidents = Yajl::Parser.parse(raw)["incidents"]
     if incidents.empty?
-      add "  - No incidents"
+      add "- No incidents"
     else
       incidents.each do |incident|
         if incident["trigger_summary_data"]
@@ -149,7 +150,7 @@ class Devdigest
         end
         description ||= "(no description)"
         url = incident["html_url"]
-        add "  - #{incident["created_on"]} [#{description}](#{url})"
+        add "- #{incident["created_on"]} [#{description}](#{url})"
       end
     end
 
@@ -163,7 +164,7 @@ class Devdigest
   def run_zendesk_digest
     return unless %w{ZENDESK_GROUP ZENDESK_PASSWORD ZENDESK_USER}.all? {|key| ENV.has_key?(key)}
     return if skip?("zendesk")
-    add "# Support"
+    add "## Support"
 
     groups = %w( opened closed updated ).inject({}) { |h, status| h[status] = []; h }
 
@@ -182,30 +183,30 @@ class Devdigest
     # get agents assigned to a ticket
     agents = find_agents
     groups.values.flatten.each do |ticket|
-      agent = agents.detect { |agent| agent["id"] == ticket["assignee_id"] }
+      agent = agents.detect { |a| a["id"] == ticket["assignee_id"] }
       ticket.merge!("agent" => agent) if agent
     end
 
     if groups["opened"].empty?
-      add "  - No new tickets"
+      add "- No new tickets"
     else
-      add "  - Opened tickets:"
+      add "- Opened tickets:"
       groups["opened"].each do |ticket|
-        add "    - #{ticket_entry(ticket)}"
+        add "  - #{ticket_entry(ticket)}"
       end
     end
 
     unless groups["updated"].empty?
-      add "  - Updated tickets:"
+      add "- Updated tickets:"
       groups["updated"].each do |ticket|
-        add "    - #{ticket_entry(ticket)}"
+        add "  - #{ticket_entry(ticket)}"
       end
     end
 
     unless groups["closed"].empty?
-      add "  - Closed tickets:"
+      add "- Closed tickets:"
       groups["closed"].each do |ticket|
-        add "    - #{ticket_entry(ticket)}"
+        add "  - #{ticket_entry(ticket)}"
       end
     end
 
