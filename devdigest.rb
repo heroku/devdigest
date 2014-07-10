@@ -93,7 +93,7 @@ class Devdigest
     activity.keys.each do |user|
       info = github.users.get user: user
 
-      add "## #{info.name}"
+      add "* #{info.name}"
 
       if activity[user].values.all? {|events| events.empty?}
         add "  - no tracked activity"
@@ -106,10 +106,9 @@ class Devdigest
             "#{order.index(event.type) || 999} #{event.created_at}"
           end
 
-          add ""
-          add "### #{repo}"
+          add "  * #{repo}"
           events.each do |event|
-            add "  - #{important_events[event.type].call(event)}"
+            add "    * #{important_events[event.type].call(event)}"
           end
 
         end
