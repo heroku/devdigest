@@ -48,12 +48,11 @@ class Devdigest
       },
       "PushEvent" => lambda { |event|
         commits  = event.payload.commits
+        message = commits.first.message.split("\n").first rescue ''
         if commits.size == 1
-          message = commits.first.message.split("\n").first
           url     = commits.first.url
           "pushed [#{message}](#{github_url(url)})"
         elsif commits.size > 1
-          message = commits.last.message.split("\n").first
           url     = commits.last.url
           "pushed #{commits.size} commits: [#{message}](#{github_url(url)})"
         end
