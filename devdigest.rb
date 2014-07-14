@@ -43,7 +43,7 @@ class Devdigest
       "IssuesEvent" => lambda { |event|
         action = event.payload.action # opened/closed/reopened
         issue = event.payload.issue
-        link = "#{action} [#{action} issue](#{github_url(issue.url)})"
+        link = "[#{action} issue](#{github_url(issue.url)})"
         [ issue.title, link ]
       },
       "PushEvent" => lambda { |event|
