@@ -37,13 +37,13 @@ class Devdigest
       "PullRequestEvent" => lambda { |event|
         action        = event.payload.action # opened/closed/reopened/synchronize
         pull_request  = event.payload.pull_request
-        link          = "[#{action} pull](#{github_url(pull_request.url)})"
+        link          = "[#{action} pull](#{pull_request.html_url})"
         [ pull_request.title, link ]
       },
       "IssuesEvent" => lambda { |event|
         action = event.payload.action # opened/closed/reopened
         issue = event.payload.issue
-        link = "[#{action} issue](#{github_url(issue.url)})"
+        link = "[#{action} issue](#{issue.html_url})"
         [ issue.title, link ]
       },
       "PushEvent" => lambda { |event|
@@ -53,12 +53,12 @@ class Devdigest
         else
           [
             commits.first.message.split("\n").first,
-            "[pushed #{commits.size}](#{github_url(commits.last.url)})"
+            "[pushed #{commits.size}](#{commits.last.url.sub!("api.github.com/repos", "github.com").sub!("commits", "commit")})"
           ]
         end
       },
       "IssueCommentEvent" => lambda { |event|
-        link = "[commented](#{github_url(event.payload.comment.url)})"
+        link = "[commented](#{event.payload.comment.html_url})"
         [ event.payload.issue.title, link ]
       },
     }
@@ -252,9 +252,5 @@ class Devdigest
 
   def ticket_url(ticket)
     "https://support.heroku.com/tickets/#{ticket["id"]}"
-  end
-
-  def github_url(api_url)
-    api_url.sub("api.github.com/repos", "github.com").sub("/pulls/", "/pull/")
   end
 end
