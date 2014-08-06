@@ -20,6 +20,10 @@ You'll need a [Github OAuth token](https://help.github.com/articles/creating-an-
     vim .env # fill in with the token and your team details
     foreman run bundle exec rake digest
 
+**Note**
+
+If you don't provide GitHub repositories and members, all repositories
+and members of the organization will be included in the daily report.
 
 ## Deployment
 
