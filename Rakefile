@@ -3,7 +3,7 @@ require 'bundler'
 require 'time'
 Bundler.require
 
-require './devdigest'
+require './lib/devdigest'
 
 desc "Run the digest and print to stdout"
 task :digest do
