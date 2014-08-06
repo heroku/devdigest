@@ -7,8 +7,8 @@ class Devdigest
 
   def run
     run_github_digest
-    run_pagerduty_digest
-    run_zendesk_digest
+    run_pagerduty_digest if ENV["PAGERDUTY_SCHEDULE"]
+    run_zendesk_digest if ENV["ZENDESK_USER"]
     @digest
   end
 
