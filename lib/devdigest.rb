@@ -30,18 +30,24 @@ class Devdigest
     org   = ENV["GITHUB_ORG"]
 
     repos = []
+    if ENV["GITHUB_REPOS"]
+      repos = ENV["GITHUB_REPOS"].split(",")
+    else
+      github.repos.list(:org => org) { |repo|
+        repos << repo.name
+      }
+    end
+    repos.sort
+
     users = []
-
-    repos = ENV["GITHUB_REPOS"].split(",").sort if ENV["GITHUB_REPOS"]
-    users = ENV["GITHUB_USERS"].split(",").sort if ENV["GITHUB_USERS"]
-
-    github.repos.list(:org => org) { |repo|
-      repos << repo.name
-    } if repos.empty?
-
-    github.orgs.members.list(org) { |member|
-      users << member.login
-    } if users.empty?
+    if ENV["GITHUB_USERS"]
+      users = ENV["GITHUB_USERS"].split(",")
+    else
+      github.orgs.members.list(org) { |member|
+        users << member.login
+      }
+    end
+    users.sort
 
     activity = {}
 
