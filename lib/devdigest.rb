@@ -21,15 +21,27 @@ class Devdigest
   end
 
   def run_github_digest
-    return unless %w{GITHUB_ORG GITHUB_REPOS GITHUB_TOKEN GITHUB_USERS}.all? {|key| ENV.has_key?(key)}
+    return unless %w{GITHUB_ORG GITHUB_TOKEN}.all? {|key| ENV.has_key?(key)}
     return if skip?("github")
     add "## Github activity"
     add ""
 
     github = Github.new oauth_token: ENV["GITHUB_TOKEN"]
     org   = ENV["GITHUB_ORG"]
-    repos = ENV["GITHUB_REPOS"].split(",").sort
-    users = ENV["GITHUB_USERS"].split(",").sort
+
+    repos = []
+    users = []
+
+    repos = ENV["GITHUB_REPOS"].split(",").sort if ENV["GITHUB_REPOS"]
+    users = ENV["GITHUB_USERS"].split(",").sort if ENV["GITHUB_USERS"]
+
+    github.repos.list(:org => org) { |repo|
+      repos << repo.name
+    } if repos.empty?
+
+    github.orgs.members.list(org) { |member|
+      users << member.login
+    } if users.empty?
 
     activity = {}
 
@@ -78,11 +90,13 @@ class Devdigest
           end
 
           next unless users.include?(event.actor.login) && important_events.has_key?(event.type)
+
           activity[event.actor.login] ||= {}
           activity[event.actor.login][repo] ||= {}
           title, link = important_events[event.type].call(event)
           activity[event.actor.login][repo][title] ||= []
           activity[event.actor.login][repo][title] << link
+
         end
         break if collected_all
       end
