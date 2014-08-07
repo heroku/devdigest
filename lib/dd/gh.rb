@@ -69,6 +69,7 @@ module Dd
         res.each_page do |page|
           page.each do |event|
             if Time.parse(event.created_at) < @since.utc
+              puts "We're done: #{Time.parse(event.created_at)} (#{@since.utc} in #{repo_org}/#{repo})"
               collected_all = true
               break
             end
