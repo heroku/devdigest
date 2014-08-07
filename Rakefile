@@ -58,15 +58,6 @@ task :daily_email do
   puts "Emailed #{ENV["EMAIL_TO"]}."
 end
 
-desc "Test daily_email"
-task :test_daily_email do
-  since    = Time.now-24*60*60
-  digest   = Devdigest.new(since).run
-  markdown = RDiscount.new(digest)
-
-  puts markdown.to_html
-end
-
 desc "Email weekly operational digest"
 task :weekly_ops_email do
   if !ENV["WEEKLY_OPS_EMAIL_DAY"]
