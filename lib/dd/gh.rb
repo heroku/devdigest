@@ -86,6 +86,31 @@ module Dd
           break if collected_all
         end
       end
+
+      activity.keys.sort.each do |user|
+        info = @github.users.get user: user
+        if info.has_key?('name') && !info.name.empty?
+         add "- **#{info.name}**"
+        else
+          add "- **#{info.login}**"
+        end
+        if activity[user].values.all? {|repo| repo.empty?}
+          add " - no tracked activity"
+        else
+          activity[user].each do |repo, events|
+            next if events.empty?
+            add " - #{repo}"
+            events.each do |title, links|
+              add " - #{title} #{links.join(', ')}"
+            end
+          end
+        end
+      end
+
+      add ""
+      rescue => e
+        add e.to_s
+        e.backtrace.each { |line| add(' ' + line) }
     end
 
     def get_repos(repos, org)
