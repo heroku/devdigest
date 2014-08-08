@@ -24,9 +24,11 @@ class Devdigest
     return unless %w{GITHUB_ORG GITHUB_TOKEN}.all? {|key| ENV.has_key?(key)}
     return if skip?("github")
 
-    gh_worker = Dd::Gh.new(ENV['GITHUB_TOKEN'], ENV['GITHUB_ORG'], @since)
-    gh_digest = gh_worker.run
-    add(gh_digest)
+    ENV['GITHUB_ORG'].split(',').sort.each { |org|
+      gh_worker = Dd::Gh.new(ENV['GITHUB_TOKEN'], org, @since)
+      gh_digest = gh_worker.run
+      add(gh_digest)
+    }
 
   rescue => e
     add e.to_s
