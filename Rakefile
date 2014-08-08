@@ -4,6 +4,7 @@ require 'time'
 Bundler.require
 
 require './lib/devdigest'
+require './lib/dd/gh'
 
 desc "Run the digest and print to stdout"
 task :digest do
@@ -55,15 +56,6 @@ task :daily_email do
   })
 
   puts "Emailed #{ENV["EMAIL_TO"]}."
-end
-
-desc "Test daily_email"
-task :test_daily_email do
-  since    = Time.now-24*60*60
-  digest   = Devdigest.new(since).run
-  markdown = RDiscount.new(digest)
-
-  puts markdown.to_html
 end
 
 desc "Email weekly operational digest"
