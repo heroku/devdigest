@@ -4,7 +4,7 @@ module Dd
 
       @org = org
 
-      @github = Github.new oauth_token: token
+      @github = Github.new oauth_token: token, auto_pagination: true
 
       @digest = ""
       @since = since
