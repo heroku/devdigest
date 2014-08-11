@@ -4,7 +4,7 @@ module Dd
 
       @org = org
 
-      @github = Github.new oauth_token: token
+      @github = Github.new oauth_token: token, auto_pagination: true
 
       @digest = ""
       @since = since
@@ -63,13 +63,15 @@ module Dd
         # repo can contain an override org
         repo, repo_org = repo_and_org.split("@").push(org)
 
+        puts "Crawling #{repo_org} / #{repo}"
+
         # collect activities
         res = @github.activity.events.repository(repo_org, repo)
         collected_all = false
         res.each_page do |page|
           page.each do |event|
             if Time.parse(event.created_at) < @since.utc
-              puts "We're done: #{Time.parse(event.created_at)} (#{@since.utc} in #{repo_org}/#{repo})"
+              puts "We're done: #{Time.parse(event.created_at)} (#{@since.utc})"
               collected_all = true
               break
             end
