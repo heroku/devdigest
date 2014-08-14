@@ -7,9 +7,11 @@ require './lib/devdigest'
 require './lib/dd/gh'
 
 desc "Run the digest and print to stdout"
-task :digest do
+task :digest, :users do |t, args|
   since = Time.now-24*60*60
-  puts Devdigest.new(since).run
+  opts = {}
+  opts.merge!(args)
+  puts Devdigest.new(since, opts).run
 end
 
 desc "Run weekly ops and print to stdout"

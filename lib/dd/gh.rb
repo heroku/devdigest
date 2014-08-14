@@ -1,6 +1,6 @@
 module Dd
   class Gh
-    def initialize(token, org, since)
+    def initialize(token, org, since, options)
 
       @org = org
 
@@ -8,6 +8,7 @@ module Dd
 
       @digest = ""
       @since = since
+      @opts = options
     end
 
     def run
@@ -25,7 +26,7 @@ module Dd
       add ""
 
       repos = get_repos(ENV['GITHUB_REPOS'], org)
-      users = get_users(ENV['GITHUB_USERS'], org)
+      users = get_users(@opts[:users] || ENV['GITHUB_USERS'], org)
 
       activity = {}
 
@@ -131,7 +132,7 @@ module Dd
 
     def get_users(users, org)
       if users
-        users = users.split(",")
+        users = users.split(/[ ,]/)
       else
         users = []
         @github.orgs.members.list(org) { |member|
