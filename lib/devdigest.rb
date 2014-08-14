@@ -3,6 +3,7 @@ class Devdigest
     @since  = since
     @digest = ""
     @only   = options[:only]
+    @opts = options
   end
 
   def run
@@ -25,7 +26,7 @@ class Devdigest
     return if skip?("github")
 
     ENV['GITHUB_ORG'].split(',').sort.each { |org|
-      gh_worker = Dd::Gh.new(ENV['GITHUB_TOKEN'], org, @since)
+      gh_worker = Dd::Gh.new(ENV['GITHUB_TOKEN'], org, @since, @opts)
       gh_digest = gh_worker.run
       add(gh_digest)
     }
