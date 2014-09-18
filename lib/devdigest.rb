@@ -39,7 +39,15 @@ class Devdigest
     return unless %w{PAGERDUTY_SERVICE PAGERDUTY_URL}.all? {|key| ENV.has_key?(key)}
     return if skip?("pagerduty")
 
-    pagerduty = RestClient::Resource.new(ENV["PAGERDUTY_URL"])
+    headers = if token = ENV['PAGERDUTY_TOKEN']
+      {
+        'Authorization' => "Token token=#{token}"
+      }
+    else
+      {}
+    end
+
+    pagerduty = RestClient::Resource.new(ENV["PAGERDUTY_URL"], :headers => headers)
 
     add "## On-call Schedule"
     ENV['PAGERDUTY_SCHEDULE'].split(',').each do |schedule_id|
