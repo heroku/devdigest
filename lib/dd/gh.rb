@@ -25,9 +25,11 @@ module Dd
       add ""
 
       repos = get_repos(ENV['GITHUB_REPOS'], org)
+      pull_request_repos = get_repos(ENV['GITHUB_PULL_REQUEST_REPOS'], org)
       users = get_users(ENV['GITHUB_USERS'], org)
 
       activity = {}
+      pull_requests = []
 
       important_events = {
         "PullRequestEvent" => lambda { |event|
@@ -83,10 +85,41 @@ module Dd
             title, link = important_events[event.type].call(event)
             activity[event.actor.login][repo][title] ||= []
             activity[event.actor.login][repo][title] << link
-
           end
           break if collected_all
         end
+
+        @github.pull_requests.list(repo_org, repo).each_page do |page|
+          next unless pull_request_repos.include?(repo_and_org)
+          page.each do |pull_request|
+            author = pull_request.user && pull_request.user.login || 'null'
+            next if pull_request.assignee # ignore assigned
+            # work around possible time drift between server/client, all were 0 seconds or more ago
+            seconds_ago = [(Time.now.utc - Time.parse(pull_request.updated_at)).round, 0].max
+            days_ago = seconds_ago / (24 * 60 * 60)
+            hours_ago = (seconds_ago / (60 * 60)) % 24
+            minutes_ago = (seconds_ago / 60) % 60
+
+            time_ago = ""
+            time_ago << "#{days_ago} days " unless days_ago == 0
+            time_ago << "#{hours_ago} hours " unless hours_ago == 0
+            time_ago << "#{minutes_ago} minutes " unless minutes_ago == 0
+            time_ago << "ago"
+            pull_requests << [
+              "#{days_ago.to_s.rjust(2,'0')}.#{hours_ago.to_s.rjust(2,'0')}.#{minutes_ago.to_s.rjust(2,'0')}",
+              "  - **#{repo}** [#{pull_request.title}](#{pull_request.html_url}) *updated #{time_ago}*"
+            ]
+          end
+        end
+      end
+
+      if pull_requests.empty?
+        add("## No Pull Requests!")
+        add("")
+      else
+        add("## Pull Requests")
+        pull_requests.sort_by {|pr| pr[0]}.reverse.each {|pr| add(pr[1])}
+        add("")
       end
 
       activity.keys.sort.each do |user|
