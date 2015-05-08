@@ -9,6 +9,7 @@ class Devdigest
     run_github_digest
     run_pagerduty_digest
     run_zendesk_digest
+    run_tracker_digest
     @digest
   end
 
@@ -179,5 +180,58 @@ class Devdigest
 
   def ticket_url(ticket)
     "https://support.heroku.com/tickets/#{ticket["id"]}"
+  end
+
+  def run_tracker_digest
+    return unless %w{TRACKER_TOKEN TRACKER_PROJECTS}.all? {|key| ENV.has_key?(key)}
+    return if skip?("tracker")
+    add "## Tracker\n"
+
+    token = ENV["TRACKER_TOKEN"]
+    yesterday = (Time.now - 86400).iso8601
+
+    ENV["TRACKER_PROJECTS"].split(",").each do |pid|
+      activity = tracker(pid, yesterday)
+
+      add "### Highlights for #{activity[0]["project"]["name"]}\n"
+
+      activity.select { |a| a["kind"] == "story_create_activity" && a["highlight"] == "added" }.each do |act|
+        add "  - #{format_tracker_activity act}"
+      end
+
+      activity.select { |a| a["kind"] == "story_update_activity" && a["highlight"] == "delivered" }.each do |act|
+        add "  - #{format_tracker_activity act}"
+      end
+
+      activity.select { |a| a["kind"] == "story_update_activity" && a["highlight"] == "accepted" }.each do |act|
+        add "  - #{format_tracker_activity act}"
+      end
+
+      activity.select { |a| a["kind"] == "story_update_activity" && a["highlight"] == "started" }.each do |act|
+        add "  - #{format_tracker_activity act}"
+      end
+    end
+  rescue => e
+    add e.to_s
+    e.backtrace.each { |line| add('  ' + line) }
+  end
+
+  def format_tracker_activity(act)
+    name = act["performed_by"]["name"]
+    highlight = act["highlight"]
+    story_type = act["primary_resources"][0]["story_type"]
+    desc = act["primary_resources"][0]["name"]
+    "#{name} #{highlight} #{story_type} [#{desc}](#{tracker_url act})"
+  end
+
+  def tracker_url(act)
+    "https://www.pivotaltracker.com/story/show/#{act["primary_resources"][0]["id"]}"
+  end
+
+  def tracker(project_id, since)
+    url = "https://www.pivotaltracker.com/services/v5/projects/#{project_id}/activity?occurred_after=#{since.to_i}"
+    @tracker ||= RestClient::Resource.new(url, :headers => { "X-TrackerToken" => ENV["TRACKER_TOKEN"] })
+    raw = @tracker.get
+    Yajl::Parser.parse(raw)
   end
 end
