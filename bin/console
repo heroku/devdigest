@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+
+require "bundler"
+Bundler.require
+
+Dotenv.load
+
+require_relative "../lib/devdigest"
+
+Pry.config.prompt_name = "devdigest"
+Pry.start
