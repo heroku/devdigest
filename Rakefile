@@ -4,7 +4,6 @@ require 'time'
 Bundler.require
 
 require './lib/devdigest'
-require './lib/dd/gh'
 
 desc "Run the digest and print to stdout"
 task :digest do
