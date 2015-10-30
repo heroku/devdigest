@@ -1,5 +1,6 @@
 source "https://rubygems.org"
 
+gem "dotenv"
 gem "foreman"
 gem "github_api"
 gem "pony"

@@ -5,6 +5,7 @@ GEM
     coderay (1.1.0)
     descendants_tracker (0.0.4)
       thread_safe (~> 0.3, >= 0.3.1)
+    dotenv (2.0.2)
     faraday (0.9.2)
       multipart-post (>= 1.2, < 3)
     foreman (0.60.2)
@@ -62,6 +63,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  dotenv
   foreman
   github_api
   pony
