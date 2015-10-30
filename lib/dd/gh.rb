@@ -72,6 +72,10 @@ module Dd
         collected_all = false
         res.each_page do |page|
           page.each do |event|
+            # Repos that are permamently moved actually produce an array
+            # instead of event object. Thanks, github_api
+            next if Array === event
+
             if Time.parse(event.created_at) < @since.utc
               puts "We're done: #{Time.parse(event.created_at)} (#{@since.utc})"
               collected_all = true
