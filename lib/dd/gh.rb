@@ -128,7 +128,8 @@ module Dd
 
       activity.keys.sort.each do |user|
         info = @github.users.get user: user
-        if info.has_key?('name') && !info.name == nil && !info.name.empty?
+
+        if info.has_key?('name') && info.name != nil && !info.name.empty?
           add " - **#{info.name}**"
         else
           add " - **#{info.login}**"
